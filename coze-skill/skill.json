@@ -1,0 +1,113 @@
+{
+  "name": "代码重构助手",
+  "name_en": "code-refactor",
+  "version": "1.0.0",
+  "description": "把遗留代码自动重构为现代规范代码。输入一段源代码和重构要求，返回重构后的完整代码，保持原有公共接口不变。支持 Python、JavaScript、TypeScript、Java、Go 等语言，可用于提炼函数、统一命名规范、消除重复逻辑、补充类型标注与文档注释。",
+  "author": "code-refactor",
+  "homepage": "https://github.com/zhouhengchang/code-refactor",
+  "icon": "https://code-refactor-api.app.workbuddy.host/assets/code-refactor-icon.png",
+  "category": "开发工具",
+  "tags": ["代码重构", "代码优化", "编程助手", "代码规范", "开发工具"],
+
+  "triggers": [
+    "重构这段代码",
+    "重构一下代码",
+    "优化这个函数",
+    "帮我清理这段代码",
+    "把这段代码改成现代写法",
+    "提取重复逻辑",
+    "给这段代码补充类型标注"
+  ],
+
+  "input_schema": {
+    "type": "object",
+    "required": ["code", "task"],
+    "properties": {
+      "code": {
+        "type": "string",
+        "title": "待重构代码",
+        "description": "需要重构的源代码片段，长度不超过 20000 字符。",
+        "maxLength": 20000
+      },
+      "task": {
+        "type": "string",
+        "title": "重构要求",
+        "description": "希望如何重构，描述越具体效果越好。例如：把嵌套 if 改为提前返回，提取重复校验逻辑为独立函数。"
+      },
+      "language": {
+        "type": "string",
+        "title": "编程语言",
+        "description": "代码使用的编程语言，不填则由模型自动判断。",
+        "enum": ["python", "javascript", "typescript", "java", "go", "rust", "c", "cpp", "auto"],
+        "default": "auto"
+      }
+    }
+  },
+
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "ok": { "type": "boolean", "title": "是否成功" },
+      "code": { "type": "string", "title": "重构后的代码" },
+      "model": { "type": "string", "title": "使用的模型" },
+      "language": { "type": "string", "title": "识别的编程语言" },
+      "elapsed_ms": { "type": "integer", "title": "耗时（毫秒）" },
+      "error": { "type": "string", "title": "错误信息（失败时返回）" }
+    }
+  },
+
+  "pricing": {
+    "recommended_model": "pay_per_call",
+    "options": [
+      {
+        "mode": "pay_per_call",
+        "name": "按次购买",
+        "price_cny": 1.0,
+        "price_range_cny": [0.5, 2.0],
+        "description": "单次代码重构调用计费。定价依据：单次调用在本地模型上平均耗时 3-10 秒，云端部署需覆盖 GPU 推理成本。建议先以 0.5 元/次做冷启动，稳定后上调至 1-2 元/次。"
+      },
+      {
+        "mode": "subscription",
+        "name": "订阅制",
+        "price_cny": 29.0,
+        "period": "month",
+        "quota": "每月 200 次重构调用",
+        "description": "包月订阅，超出部分按 0.5 元/次计费。折算单价约 0.145 元/次，适合有稳定重构需求的开发者。"
+      }
+    ],
+    "free_trial": {
+      "enabled": true,
+      "quota": 3,
+      "description": "新用户前 3 次调用免费，便于体验效果后再决定是否付费。"
+    }
+  },
+
+  "test_cases": [
+    {
+      "name": "Python 函数命名与类型标注重构",
+      "url": "https://github.com/zhouhengchang/code-refactor/blob/main/tests/cases/01-python-rename-types.md",
+      "description": "输入一段单字母命名的 Python 函数，要求重命名为有意义的名称并补充类型标注，验证输出是否保持逻辑等价。"
+    },
+    {
+      "name": "JavaScript 回调地狱改写为 async/await",
+      "url": "https://github.com/zhouhengchang/code-refactor/blob/main/tests/cases/02-js-async-await.md",
+      "description": "输入嵌套回调的 Node.js 代码，要求改写为 async/await 写法，验证异常处理是否完整保留。"
+    },
+    {
+      "name": "Java 重复逻辑提取",
+      "url": "https://github.com/zhouhengchang/code-refactor/blob/main/tests/cases/03-java-dry.md",
+      "description": "输入包含三处重复校验逻辑的 Java 方法，要求提取为私有工具方法，验证提取后行为是否不变。"
+    },
+    {
+      "name": "嵌套条件提前返回重构",
+      "url": "https://github.com/zhouhengchang/code-refactor/blob/main/tests/cases/04-early-return.md",
+      "description": "输入五层嵌套 if 的函数，要求改为卫语句（提前返回）写法，验证可读性提升且分支覆盖不变。"
+    }
+  ],
+
+  "limits": {
+    "max_code_length": 20000,
+    "timeout_seconds": 30,
+    "rate_limit": "60 次/分钟/用户"
+  }
+}
