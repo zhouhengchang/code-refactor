@@ -1,0 +1,79 @@
+{
+  "agent_name": "代码重构助手",
+  "agent_name_en": "code-refactor",
+  "version": "1.0.0",
+  "avatar": "https://code-refactor-api.app.workbuddy.host/assets/code-refactor-icon.png",
+  "category": "编程开发",
+  "publish_targets": ["api", "xinghuo_app"],
+
+  "description": "代码重构助手，把遗留代码自动改造为现代规范代码。支持 Python、JavaScript、TypeScript、Java、Go、Rust、C、C++ 八种语言的重构：重命名变量与函数、提取重复逻辑、简化嵌套条件、补充类型标注、生成文档注释。输入一段源代码和重构要求，输出重构后的完整代码，保持原有函数签名与业务逻辑不变。适合处理历史项目维护、代码评审前的规范化整理、团队代码风格统一等场景。",
+
+  "search_keywords": [
+    "代码重构",
+    "代码优化",
+    "重构助手",
+    "遗留代码",
+    "代码规范",
+    "代码美化",
+    "变量命名",
+    "重复代码提取",
+    "类型标注",
+    "文档注释生成",
+    "Python重构",
+    "JavaScript重构",
+    "Java重构",
+    "代码可读性",
+    "技术债清理",
+    "历史项目维护",
+    "代码评审",
+    "编程开发",
+    "开发工具"
+  ],
+
+  "capabilities": {
+    "supports_code_input": true,
+    "supported_languages": ["python", "javascript", "typescript", "java", "go", "rust", "c", "cpp"],
+    "max_code_length": 20000,
+    "timeout_seconds": 30
+  },
+
+  "api_publish": {
+    "enabled": true,
+    "protocol": "http",
+    "endpoint": "https://code-refactor-api.app.workbuddy.host/xinghuo/chat",
+    "method": "POST",
+    "auth": {
+      "type": "bearer",
+      "note": "鉴权令牌通过环境变量 XINGHUO_API_KEY 注入，不写入配置文件"
+    },
+    "request_example": {
+      "query": "帮我重构这段代码，变量名改成有意义的\n```python\ndef f(a):\n    r = []\n    for i in a:\n        if i % 2 == 0:\n            r.append(i * i)\n    return r\n```"
+    },
+    "response_example": {
+      "code": 0,
+      "message": "success",
+      "data": {
+        "answer": "重构完成，逻辑等价，主要改动点如下……"
+      }
+    }
+  },
+
+  "model_config": {
+    "recommended_model": "generalv3.5",
+    "temperature": 0.2,
+    "max_tokens": 4096,
+    "note": "temperature 建议 0.2 左右，保证重构结果稳定、少发挥"
+  },
+
+  "pricing": {
+    "model": "per_call",
+    "currency": "CNY",
+    "unit_price": 1.0,
+    "free_trial": 3
+  },
+
+  "limits": {
+    "rate_limit": "60 次/分钟/用户",
+    "max_code_length": 20000
+  }
+}
