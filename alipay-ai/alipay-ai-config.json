@@ -1,0 +1,108 @@
+{
+  "app_name": "代码重构助手",
+  "app_name_en": "code-refactor",
+  "version": "1.0.0",
+  "service_description": "把遗留代码自动重构为现代规范代码。输入源代码片段与重构要求，返回重构后的完整代码，保持原有公共接口与外部行为不变。支持 Python、JavaScript、TypeScript、Java、Go、Rust、C、C++ 共 8 种语言，适用于命名规范化、重复逻辑提取、嵌套条件简化、类型标注补充、文档注释生成等场景。",
+
+  "developer": {
+    "name": "code-refactor",
+    "contact_email": "271419959+zhouhengchang@users.noreply.github.com",
+    "homepage": "https://github.com/zhouhengchang/code-refactor"
+  },
+
+  "integration": {
+    "method": "sdk",
+    "steps": [
+      {
+        "step": 1,
+        "name": "入驻签约",
+        "description": "在支付宝开放平台完成开发者入驻，签约「AI收」产品。个人开发者需完成实名认证；企业开发者需提交营业执照。",
+        "url": "https://open.alipay.com/"
+      },
+      {
+        "step": 2,
+        "name": "创建应用",
+        "description": "在开放平台创建应用，选择「AI收」能力，配置回调地址与密钥。密钥通过环境变量注入，不要写入代码仓库。",
+        "url": "https://open.alipay.com/develop/manage"
+      },
+      {
+        "step": 3,
+        "name": "安装 SDK",
+        "description": "安装 alipay-sdk-python（服务端）并完成初始化，接入按次计费接口。",
+        "sdk": {
+          "language": "python",
+          "package": "alipay-sdk-python",
+          "install": "pip install alipay-sdk-python",
+          "note": "App ID 与私钥从环境变量 ALIPAY_APP_ID / ALIPAY_PRIVATE_KEY 读取，严禁硬编码。"
+        }
+      }
+    ]
+  },
+
+  "billing": {
+    "mode": "per_call",
+    "currency": "CNY",
+    "unit_price": 1.0,
+    "unit": "次",
+    "description": "按调用次数即时收款。用户每次调用重构接口，实时扣费 1 元。",
+    "alternative_modes": [
+      {
+        "mode": "per_quantity",
+        "description": "按量计费，适用于包月/套餐形式。例如 29 元含 200 次调用。"
+      }
+    ],
+    "free_trial": {
+      "enabled": true,
+      "quota": 3,
+      "description": "新用户前 3 次免费"
+    },
+    "failed_call_policy": {
+      "charge_on_failure": false,
+      "description": "重构失败或服务异常时不计费，自动退回。"
+    }
+  },
+
+  "fee_policy": {
+    "rate": 0,
+    "currency": "CNY",
+    "note": "个人开发者费率优惠：2026年12月31日前享受 0 费率。具体费率以支付宝开放平台最新公示为准。",
+    "applicable_until": "2026-12-31",
+    "applicable_for": "individual_developer"
+  },
+
+  "payment_flow": {
+    "trigger": "before_service_invocation",
+    "steps": [
+      "用户发起重构请求",
+      "服务端校验免费额度，额度未用完则直接放行",
+      "额度用尽时调用支付宝 AI收 接口生成收款订单",
+      "用户完成支付后，服务端执行重构并返回结果",
+      "支付失败或用户取消，则不执行重构、不计费"
+    ],
+    "callback_url": "https://code-refactor-api.app.workbuddy.host/alipay/notify",
+    "return_url": "https://code-refactor-api.app.workbuddy.host/refactor/success"
+  },
+
+  "api": {
+    "endpoint": "https://code-refactor-api.app.workbuddy.host/refactor",
+    "method": "POST",
+    "openapi": "https://code-refactor-api.app.workbuddy.host/openapi.json",
+    "request_example": {
+      "code": "def f(a):\n    r = []\n    for i in a:\n        if i % 2 == 0:\n            r.append(i * i)\n    return r\n",
+      "task": "重命名为有意义的函数名与变量名，补充类型标注与中文注释",
+      "language": "python"
+    }
+  },
+
+  "limits": {
+    "max_code_length": 20000,
+    "timeout_seconds": 30,
+    "rate_limit": "60 次/分钟/用户"
+  },
+
+  "compliance": {
+    "data_retention": "none",
+    "code_used_for_training": false,
+    "note": "用户代码仅用于本次重构推理，不在服务端留存，不用于模型训练。"
+  }
+}
