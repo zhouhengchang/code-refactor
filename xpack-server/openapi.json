@@ -1,0 +1,196 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "代码重构服务",
+    "version": "1.0.0",
+    "description": "将遗留代码自动重构为现代规范代码。支持 Python、JavaScript、TypeScript、Java、Go 等语言。基于 Ollama + deepseek-coder 模型，可按调用次数计费接入 XPack MCP 交易平台。",
+    "contact": {
+      "name": "代码重构服务",
+      "url": "https://github.com/zhouhengchang/code-refactor"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "本地开发环境"
+    },
+    {
+      "url": "https://code-refactor-api.app.workbuddy.host",
+      "description": "线上生产环境（请替换为实际部署地址）"
+    }
+  ],
+  "paths": {
+    "/refactor": {
+      "post": {
+        "operationId": "refactorCode",
+        "summary": "重构代码片段",
+        "description": "接收一段源代码与重构任务描述，返回重构后的完整代码。单次调用超时 30 秒。",
+        "tags": ["代码重构"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["code", "task"],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "待重构的源代码片段，长度不得超过 20000 字符",
+                    "maxLength": 20000,
+                    "example": "def f(a):\n    r = []\n    for i in a:\n        if i % 2 == 0:\n            r.append(i * i)\n    return r\n"
+                  },
+                  "task": {
+                    "type": "string",
+                    "description": "重构任务描述，例如：重命名为有意义的函数名与变量名，补充类型标注与中文注释",
+                    "example": "重命名为有意义的函数名与变量名，补充类型标注与中文注释"
+                  },
+                  "language": {
+                    "type": "string",
+                    "description": "编程语言提示，不填则由模型自动判断",
+                    "enum": ["python", "javascript", "typescript", "java", "go", "rust", "c", "cpp", "auto"],
+                    "default": "auto"
+                  }
+                }
+              },
+              "examples": {
+                "basic": {
+                  "summary": "基础重构示例",
+                  "value": {
+                    "code": "def f(a):\n    r = []\n    for i in a:\n        if i % 2 == 0:\n            r.append(i * i)\n    return r\n",
+                    "task": "重命名为有意义的函数名与变量名，补充类型标注与中文注释",
+                    "language": "python"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "重构成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": { "type": "boolean", "description": "是否成功" },
+                    "code": { "type": "string", "description": "重构后的完整代码" },
+                    "model": { "type": "string", "description": "实际使用的模型" },
+                    "language": { "type": "string", "description": "识别的编程语言" },
+                    "elapsed_ms": { "type": "integer", "description": "耗时（毫秒）" }
+                  }
+                },
+                "example": {
+                  "ok": true,
+                  "code": "def filter_even_squares(numbers: list[int]) -> list[int]:\n    ...\n",
+                  "model": "deepseek-coder",
+                  "language": "python",
+                  "elapsed_ms": 3820
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数错误，例如 code 或 task 为空",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "413": {
+            "description": "代码片段过长",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "504": {
+            "description": "模型推理超时",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/status": {
+      "get": {
+        "operationId": "checkStatus",
+        "summary": "检查服务状态",
+        "description": "检查 Ollama 服务与重构模型是否可用。建议在调用 /refactor 前先调用本接口。",
+        "tags": ["系统"],
+        "responses": {
+          "200": {
+            "description": "状态信息",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": { "type": "boolean" },
+                    "available": { "type": "boolean", "description": "模型是否可用" },
+                    "model": { "type": "string" },
+                    "installed_models": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    },
+                    "message": { "type": "string" }
+                  }
+                },
+                "example": {
+                  "ok": true,
+                  "available": true,
+                  "model": "deepseek-coder",
+                  "installed_models": ["deepseek-coder:latest"],
+                  "message": "Ollama 服务正常，模型 deepseek-coder 已就绪。"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "example": false },
+          "error": { "type": "string", "description": "可读的中文错误信息" },
+          "error_type": {
+            "type": "string",
+            "description": "错误分类",
+            "enum": [
+              "invalid_argument",
+              "payload_too_large",
+              "ollama_unreachable",
+              "model_not_found",
+              "empty_response",
+              "timeout"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "代码重构",
+      "description": "核心重构能力，按调用次数计费"
+    },
+    {
+      "name": "系统",
+      "description": "服务健康检查，不计费"
+    }
+  ]
+}
