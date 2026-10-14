@@ -1,0 +1,27 @@
+# GitHub Sponsors 赞助配置
+# ==========================
+# 填写后，仓库页面顶部会出现「Sponsor」按钮。
+#
+# 注意：只有已开通对应赞助平台的账号才会显示按钮，未开通的平台建议先注释掉。
+# 把 zhouhengchang / zhouhengchang 替换为你的实际账号。
+
+# GitHub Sponsors（需先通过 https://github.com/sponsors 申请开通）
+github: [zhouhengchang]
+
+# 以下为可选平台，未开通请保持注释状态
+# patreon: your-patreon-username
+# open_collective: your-collective-name
+# ko_fi: your-kofi-username
+# tidelift: npm/your-package-name
+# community_bridge: your-project-name
+# liberapay: zhouhengchang
+# issuehunt: zhouhengchang
+# lfx_crowdfunding: your-project-name
+# polar: zhouhengchang
+# buy_me_a_coffee: zhouhengchang
+# thanks_dev: zhouhengchang
+
+# 自定义赞助链接（最多 4 个，国内用户可填爱发电等）
+custom:
+  - https://code-refactor-api.app.workbuddy.host/sponsor
+  # - https://afdian.com/a/zhouhengchang
