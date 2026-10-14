@@ -1,0 +1,27 @@
+{
+  "title": "代码重构助手 - 连接配置",
+  "description": "填写本地 Ollama 服务信息。所有内容仅保存在本机，不会上传。",
+  "type": "object",
+  "required": ["ollama_host", "ollama_model"],
+  "properties": {
+    "ollama_host": {
+      "type": "string",
+      "title": "Ollama 服务地址",
+      "description": "Ollama服务地址",
+      "default": "http://localhost:11434",
+      "placeholder": "http://localhost:11434"
+    },
+    "ollama_model": {
+      "type": "string",
+      "title": "模型名称",
+      "description": "使用的模型名称",
+      "default": "deepseek-coder",
+      "placeholder": "deepseek-coder"
+    },
+    "api_token": {
+      "type": "password",
+      "title": "访问令牌（可选）",
+      "description": "如 Ollama 服务部署在远端并启用了鉴权，请在此填入访问令牌；本地部署可留空。"
+    }
+  }
+}
