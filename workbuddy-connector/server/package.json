@@ -1,0 +1,29 @@
+{
+  "name": "workbuddy-code-refactor-connector",
+  "version": "1.0.0",
+  "description": "WorkBuddy 代码重构连接器：基于本地 Ollama + deepseek-coder，把遗留代码重构为现代规范代码",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "workbuddy-code-refactor-connector": "index.js"
+  },
+  "files": [
+    "index.js"
+  ],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "workbuddy",
+    "connector",
+    "code-refactor",
+    "ollama",
+    "deepseek-coder"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}
