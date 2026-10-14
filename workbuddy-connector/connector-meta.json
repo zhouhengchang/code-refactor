@@ -1,0 +1,9 @@
+{
+  "id": "code-refactor-connector",
+  "name": "代码重构助手",
+  "description": "将遗留代码自动重构为现代规范代码，支持Python/JavaScript/Java",
+  "auth_mode": "token",
+  "version": "1.0.0",
+  "minWorkbuddyVersion": "5.0.0",
+  "source": "code-refactor"
+}
