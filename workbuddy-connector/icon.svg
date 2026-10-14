@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="代码重构助手">
+  <title>代码重构助手</title>
+  <defs>
+    <!-- 主色渐变：开发者工具惯用的蓝色系 -->
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#1D4ED8"/>
+    </linearGradient>
+    <linearGradient id="arrow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#DBEAFE"/>
+      <stop offset="100%" stop-color="#FFFFFF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 圆角方形底板 -->
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#bg)"/>
+
+  <!-- 左侧：原始代码（错落、混乱的三条线） -->
+  <rect x="22" y="40" width="24" height="6" rx="3" fill="#BFDBFE"/>
+  <rect x="22" y="61" width="34" height="6" rx="3" fill="#93C5FD"/>
+  <rect x="22" y="82" width="20" height="6" rx="3" fill="#BFDBFE"/>
+
+  <!-- 中间：向右的重构箭头 -->
+  <path d="M64 64 L78 64 M72.5 58.5 L78 64 L72.5 69.5"
+        fill="none" stroke="url(#arrow)" stroke-width="4"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- 右侧：重构后的代码（对齐、规整的三条线） -->
+  <rect x="86" y="40" width="20" height="6" rx="3" fill="#FFFFFF"/>
+  <rect x="86" y="61" width="20" height="6" rx="3" fill="#DBEAFE"/>
+  <rect x="86" y="82" width="20" height="6" rx="3" fill="#FFFFFF"/>
+
+  <!-- 右下角：校验完成标记（表达「重构已验证」） -->
+  <circle cx="103" cy="98" r="11" fill="#22C55E"/>
+  <path d="M97.5 98.2 L101.3 102 L108.5 94.5"
+        fill="none" stroke="#FFFFFF" stroke-width="2.6"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
