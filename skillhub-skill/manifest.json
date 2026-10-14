@@ -1,0 +1,141 @@
+{
+  "schema_version": "1.0",
+  "skill": {
+    "id": "com.coderefactor.skillhub.pay",
+    "name": "代码重构助手",
+    "name_en": "code-refactor-pro",
+    "version": "1.0.0",
+    "description": "把遗留代码重构为现代规范代码，保持原有公共接口不变。支持 Python、JavaScript、TypeScript、Java、Go 等语言，涵盖命名规范化、重复逻辑提取、条件简化、类型标注补充、文档注释生成等重构任务。",
+    "category": "developer-tools",
+    "tags": ["代码重构", "代码质量", "开发工具", "静态分析", "代码规范"],
+    "icon": "https://code-refactor-api.app.workbuddy.host/assets/code-refactor-icon.png",
+    "homepage": "https://github.com/zhouhengchang/code-refactor",
+    "repository": "https://github.com/zhouhengchang/code-refactor",
+    "documentation": "https://github.com/zhouhengchang/code-refactor#readme"
+  },
+
+  "author": {
+    "name": "code-refactor",
+    "email": "271419959+zhouhengchang@users.noreply.github.com",
+    "url": "https://github.com/zhouhengchang",
+    "verified": false
+  },
+
+  "license": {
+    "type": "MIT",
+    "url": "https://opensource.org/licenses/MIT"
+  },
+
+  "triggers": {
+    "keywords": [
+      "重构这段代码",
+      "重构代码片段",
+      "优化这个函数实现",
+      "提取重复代码逻辑",
+      "消除代码重复",
+      "补充类型标注",
+      "把嵌套if改为提前返回",
+      "清理遗留代码"
+    ],
+    "negative_keywords": [
+      "解释代码",
+      "找bug",
+      "代码审查",
+      "写单元测试",
+      "新增功能"
+    ],
+    "intent": "用户提供一段源代码并希望在不改变外部行为的前提下改进其内部结构与可读性"
+  },
+
+  "slots": {
+    "code": {
+      "type": "string",
+      "required": true,
+      "title": "待重构代码",
+      "description": "需要重构的源代码片段，长度不超过 20000 字符",
+      "max_length": 20000,
+      "elicitation": "请把需要重构的代码贴给我"
+    },
+    "task": {
+      "type": "string",
+      "required": true,
+      "title": "重构要求",
+      "description": "希望如何重构，描述越具体效果越好",
+      "max_length": 500,
+      "elicitation": "你希望怎么重构？比如「提取重复逻辑」「补充类型标注」"
+    },
+    "language": {
+      "type": "enum",
+      "required": false,
+      "title": "编程语言",
+      "description": "代码使用的编程语言，不填则自动判断",
+      "values": ["python", "javascript", "typescript", "java", "go", "rust", "c", "cpp", "auto"],
+      "default": "auto"
+    }
+  },
+
+  "capabilities": {
+    "returns_code": true,
+    "streaming": false,
+    "max_code_length": 20000,
+    "timeout_seconds": 30,
+    "supported_languages": ["python", "javascript", "typescript", "java", "go", "rust", "c", "cpp"]
+  },
+
+  "pricing": {
+    "model": "pay_per_use",
+    "currency": "CNY",
+    "tiers": [
+      {
+        "name": "体验版",
+        "price": 0,
+        "quota": 3,
+        "unit": "次",
+        "description": "新用户免费体验 3 次"
+      },
+      {
+        "name": "按次",
+        "price": 1.0,
+        "unit": "次",
+        "description": "单次调用 1 元"
+      },
+      {
+        "name": "包月",
+        "price": 29.0,
+        "unit": "月",
+        "quota": 200,
+        "description": "29 元/月含 200 次，超出按 0.5 元/次"
+      }
+    ],
+    "billing_endpoint": "https://code-refactor-api.app.workbuddy.host/billing/pay",
+    "metering": "per_successful_call",
+    "refund_policy": "调用失败不计费"
+  },
+
+  "runtime": {
+    "type": "mcp",
+    "transport": ["stdio", "streamableHttp"],
+    "endpoint": "https://code-refactor-api.app.workbuddy.host/mcp",
+    "openapi": "https://code-refactor-api.app.workbuddy.host/openapi.json"
+  },
+
+  "permissions": [
+    "network:outbound",
+    "no:filesystem",
+    "no:credentials"
+  ],
+
+  "privacy": {
+    "data_retention": "none",
+    "sends_code_to_third_party": false,
+    "note": "代码仅用于本次重构推理，不在服务端留存。若使用托管版服务，推理在隔离容器内完成。"
+  },
+
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-10-12",
+      "changes": ["首次发布：支持 8 种语言的代码重构，暴露 refactor_code 与 check_status 两个能力"]
+    }
+  ]
+}
