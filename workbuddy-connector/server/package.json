@@ -1,7 +1,7 @@
 {
   "name": "workbuddy-code-refactor-connector",
   "version": "1.0.0",
-  "description": "WorkBuddy 代码重构连接器：基于本地 Ollama + deepseek-coder，把遗留代码重构为现代规范代码",
+  "description": "WorkBuddy 代码重构连接器：把遗留代码重构为现代规范代码，支持本地 Ollama 与云端 OpenAI 兼容接口两种推理后端",
   "type": "module",
   "main": "index.js",
   "bin": {
@@ -20,6 +20,14 @@
     "deepseek-coder"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhouhengchang/code-refactor.git"
+  },
+  "homepage": "https://github.com/zhouhengchang/code-refactor#readme",
+  "bugs": {
+    "url": "https://github.com/zhouhengchang/code-refactor/issues"
+  },
   "engines": {
     "node": ">=18"
   },

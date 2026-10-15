@@ -5,8 +5,13 @@
       "command": "npx",
       "args": ["-y", "workbuddy-code-refactor-connector"],
       "env": {
+        "REFACTOR_BACKEND": "${refactor_backend}",
         "OLLAMA_HOST": "${ollama_host}",
-        "OLLAMA_MODEL": "${ollama_model}"
+        "OLLAMA_MODEL": "${ollama_model}",
+        "OPENAI_BASE_URL": "${openai_base_url}",
+        "OPENAI_MODEL": "${openai_model}",
+        "OPENAI_API_KEY": "${openai_api_key}",
+        "REFACTOR_TIMEOUT_MS": "${refactor_timeout_ms}"
       }
     }
   }

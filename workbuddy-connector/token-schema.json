@@ -1,27 +1,56 @@
 {
   "title": "代码重构助手 - 连接配置",
-  "description": "填写本地 Ollama 服务信息。所有内容仅保存在本机，不会上传。",
+  "description": "选择推理后端：本地 Ollama（代码不出本机）或云端 OpenAI 兼容接口。所有配置仅保存在本机，不会上传。",
   "type": "object",
-  "required": ["ollama_host", "ollama_model"],
+  "required": ["refactor_backend"],
   "properties": {
+    "refactor_backend": {
+      "type": "string",
+      "title": "推理后端",
+      "description": "ollama = 调用本地 Ollama，代码不出本机；openai = 调用云端 OpenAI 兼容接口，重构质量更好但代码会上传。",
+      "enum": ["ollama", "openai"],
+      "enumNames": ["本地 Ollama", "云端接口"],
+      "default": "ollama"
+    },
     "ollama_host": {
       "type": "string",
       "title": "Ollama 服务地址",
-      "description": "Ollama服务地址",
-      "default": "http://localhost:11434",
-      "placeholder": "http://localhost:11434"
+      "description": "仅在选择「本地 Ollama」时使用。默认 http://127.0.0.1:11434",
+      "default": "http://127.0.0.1:11434",
+      "placeholder": "http://127.0.0.1:11434"
     },
     "ollama_model": {
       "type": "string",
-      "title": "模型名称",
-      "description": "使用的模型名称",
+      "title": "Ollama 模型名称",
+      "description": "仅在选择「本地 Ollama」时使用。需先用 ollama pull 下载该模型。",
       "default": "deepseek-coder",
       "placeholder": "deepseek-coder"
     },
-    "api_token": {
+    "openai_base_url": {
+      "type": "string",
+      "title": "云端接口地址",
+      "description": "仅在选择「云端接口」时使用。填写 OpenAI 兼容的 API 基地址，例如 https://api.deepseek.com/v1",
+      "default": "https://api.deepseek.com/v1",
+      "placeholder": "https://api.deepseek.com/v1"
+    },
+    "openai_model": {
+      "type": "string",
+      "title": "云端模型名称",
+      "description": "仅在选择「云端接口」时使用。例如 deepseek-chat。",
+      "default": "deepseek-chat",
+      "placeholder": "deepseek-chat"
+    },
+    "openai_api_key": {
       "type": "password",
-      "title": "访问令牌（可选）",
-      "description": "如 Ollama 服务部署在远端并启用了鉴权，请在此填入访问令牌；本地部署可留空。"
+      "title": "云端 API 密钥",
+      "description": "仅在选择「云端接口」时必填。密钥由服务商提供，例如 DeepSeek 平台的 sk- 开头密钥。"
+    },
+    "refactor_timeout_ms": {
+      "type": "string",
+      "title": "单次请求超时（毫秒）",
+      "description": "可选。默认 180000（180 秒）。本地纯 CPU 推理较慢，不建议调小。",
+      "default": "180000",
+      "placeholder": "180000"
     }
   }
 }
