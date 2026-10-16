@@ -45,7 +45,7 @@ const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "deepseek-coder";
 
 /** 云端 OpenAI 兼容接口地址与模型（deepseek-chat 为实测可用的模型 ID） */
 const OPENAI_BASE_URL = (process.env.OPENAI_BASE_URL || "https://api.deepseek.com/v1").replace(/\/+$/, "");
-const OPENAI_MODEL = process.env.OPENAI_MODEL || "deepseek-chat";
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "deepseek-flash";
 
 /** 当前后端实际使用的模型名 */
 const ACTIVE_MODEL = BACKEND === "openai" ? OPENAI_MODEL : OLLAMA_MODEL;
