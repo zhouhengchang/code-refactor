@@ -25,6 +25,24 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+
+// ---------------------------------------------------------------------------
+// 服务标识：版本号从 package.json 动态读取，避免与发布版本号脱节
+// ---------------------------------------------------------------------------
+const _HERE = dirname(fileURLToPath(import.meta.url));
+
+function readPackageVersion() {
+  try {
+    const pkg = JSON.parse(readFileSync(join(_HERE, "package.json"), "utf8"));
+    return pkg.version || "0.0.0";
+  } catch {
+    // 读不到时退回占位版本，不影响功能
+    return "0.0.0";
+  }
+}
 
 // ---------------------------------------------------------------------------
 // 配置：全部来自环境变量，带安全默认值
@@ -61,7 +79,8 @@ const REQUEST_TIMEOUT_MS = Number(process.env.REFACTOR_TIMEOUT_MS || 180000);
 
 /** 服务名称与版本，会展示在 WorkBuddy 连接器详情中 */
 const SERVER_NAME = "code-refactor";
-const SERVER_VERSION = "1.0.0";
+/** 版本号取自 package.json，确保与 npm 发布版本一致 */
+const SERVER_VERSION = readPackageVersion();
 
 // ---------------------------------------------------------------------------
 // 工具函数
