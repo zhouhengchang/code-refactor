@@ -8,6 +8,7 @@
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-6E56CF.svg)](https://modelcontextprotocol.io/)
+[![npm](https://img.shields.io/npm/v/workbuddy-code-refactor-connector.svg?logo=npm&color=CB3837)](https://www.npmjs.com/package/workbuddy-code-refactor-connector)
 
 一个基于本地大模型的代码重构服务。输入一段源代码和一句重构要求，输出重构后的完整代码。
 
@@ -89,20 +90,16 @@ else:
 
 ### 方式二：作为 MCP Server 接入（Claude Desktop / WorkBuddy / 任意 MCP 客户端）
 
-```bash
-cd workbuddy-connector/server
-npm install
-```
-
-在 MCP 客户端配置中添加：
+已发布到 npm，**不用克隆仓库**，直接在 MCP 客户端配置里引用：
 
 ```json
 {
   "mcpServers": {
     "code-refactor": {
-      "command": "node",
-      "args": ["/绝对路径/to/workbuddy-connector/server/index.js"],
+      "command": "npx",
+      "args": ["-y", "workbuddy-code-refactor-connector"],
       "env": {
+        "REFACTOR_BACKEND": "ollama",
         "OLLAMA_HOST": "http://localhost:11434",
         "OLLAMA_MODEL": "deepseek-coder"
       }
@@ -110,6 +107,17 @@ npm install
   }
 }
 ```
+
+> npm 包：[workbuddy-code-refactor-connector](https://www.npmjs.com/package/workbuddy-code-refactor-connector)
+
+也可以从源码运行，便于自己改代码：
+
+```bash
+cd workbuddy-connector/server
+npm install
+```
+
+然后把上面的 `command` 改成 `node`，`args` 改成 `["/绝对路径/to/workbuddy-connector/server/index.js"]` 即可。
 
 重启客户端后即可使用 `refactor_code` 和 `check_status` 两个工具。
 
@@ -181,12 +189,26 @@ curl -X POST http://localhost:8000/refactor \
 
 | 环境变量 | 默认值 | 说明 |
 |---|---|---|
+| `REFACTOR_BACKEND` | `ollama` | 推理后端：`ollama`（本地）或 `openai`（任意 OpenAI 兼容接口） |
 | `OLLAMA_HOST` | `http://127.0.0.1:11434` | Ollama 服务地址 |
-| `OLLAMA_MODEL` | `deepseek-coder` | 使用的模型 |
-| `REFACTOR_TIMEOUT` | `25` | 超时秒数（Python） |
-| `REFACTOR_TIMEOUT_MS` | `25000` | 超时毫秒数（Node.js） |
+| `OLLAMA_MODEL` | `deepseek-coder` | 本地模型 |
+| `OPENAI_BASE_URL` | `https://api.deepseek.com/v1` | 云端接口地址（`REFACTOR_BACKEND=openai` 时生效） |
+| `OPENAI_API_KEY` | — | 云端密钥，**仅从环境变量读取，永不写进代码** |
+| `OPENAI_MODEL` | `deepseek-flash` | 云端模型（DeepSeek 官方在列：`deepseek-flash` / `deepseek-v4-pro`） |
+| `REFACTOR_TIMEOUT` | `180` | 超时秒数（Python） |
+| `REFACTOR_TIMEOUT_MS` | `180000` | 超时毫秒数（Node.js） |
 
-想用更小更快的模型：`OLLAMA_MODEL=qwen2.5-coder:1.5b`。
+本地和云端两套后端**同一份代码**，切换只改环境变量：
+
+```bash
+# 改用云端 OpenAI 兼容接口
+export REFACTOR_BACKEND=openai
+export OPENAI_API_KEY=sk-xxxx
+```
+
+> 超时默认给到 180 秒，是因为在纯 CPU 的低配机器上本地推理可能需要 1 分钟以上。如果你的机器有 GPU，可以调小。
+
+想用更小更快的本地模型：`OLLAMA_MODEL=qwen2.5-coder:1.5b`。
 
 ## 项目结构
 
@@ -222,7 +244,7 @@ code-refactor/
 - 代码不能出内网 / 想完全掌控 → **开源版**，直接克隆部署
 - 本机没有 GPU、不想折腾环境、需要更好的重构质量 → **托管版**
 
-👉 **托管版入口：** https://code-refactor-api.app.workbuddy.host （*TODO：替换为实际落地页*）
+👉 **托管版入口：** <https://code-refactor.app.workbuddy.host>
 
 > 托管版同样承诺：**代码仅用于本次推理，不留存、不用于模型训练。**
 
@@ -230,8 +252,9 @@ code-refactor/
 
 本服务已适配以下平台，可按需取用对应目录下的配置文件：
 
-| 平台 | 形态 | 配置文件 |
+| 平台 | 形态 | 配置 / 入口 |
 |---|---|---|
+| **npm** | 可执行 MCP Server（已上线） | `npx -y workbuddy-code-refactor-connector` |
 | WorkBuddy 开放平台 | Connector / MCP Server | `workbuddy-connector/` |
 | XPack MCP 交易平台 | OpenAPI → MCP 服务 | `xpack-server/openapi.json` |
 | 扣子（Coze） | 技能商店 Skill | `coze-skill/skill.json` |
@@ -254,10 +277,12 @@ code-refactor/
 可以，只把那个函数贴进来就行。
 
 **Q：为什么用 `deepseek-coder`？**
-在代码任务上表现稳定，且对 6.7B 这个体量来说推理质量与速度平衡得不错。你可以通过 `OLLAMA_MODEL` 换成任何 Ollama 模型。
+在代码任务上表现稳定，是本地小体量模型里性价比较好的选择。你可以通过 `OLLAMA_MODEL` 换成任何 Ollama 模型。
+
+> 注意：Ollama 上的 `deepseek-coder` 标签实际是 **约 776MB 的小体量版本**，并不是原版的 6.7B。算力允许的话，换成 `qwen2.5-coder:7b` 效果会明显更好。
 
 **Q：响应慢怎么办？**
-换更小的模型（`qwen2.5-coder:1.3b`）、缩小单次重构范围、或确认本机没有其他任务在抢 GPU。
+换更小的模型（`qwen2.5-coder:1.5b`）、缩小单次重构范围、或确认本机没有其他任务在抢 GPU。用托管版也能绕开本地算力限制。
 
 ## 贡献
 

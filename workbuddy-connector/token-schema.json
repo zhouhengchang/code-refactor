@@ -36,7 +36,7 @@
     "openai_model": {
       "type": "string",
       "title": "云端模型名称",
-      "description": "仅在选择「云端接口」时使用。例如 deepseek-chat。",
+      "description": "仅在选择「云端接口」时使用。默认 deepseek-chat（直接作答、成本更低）；如需更强推理可填 deepseek-flash（推理型，token 消耗约 5 倍）。",
       "default": "deepseek-chat",
       "placeholder": "deepseek-chat"
     },

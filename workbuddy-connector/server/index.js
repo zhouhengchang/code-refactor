@@ -43,9 +43,11 @@ const OLLAMA_HOST = (process.env.OLLAMA_HOST || "http://127.0.0.1:11434").replac
 /** 本地 Ollama 使用的模型 */
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "deepseek-coder";
 
-/** 云端 OpenAI 兼容接口地址与模型（deepseek-chat 为实测可用的模型 ID） */
+/** 云端 OpenAI 兼容接口地址与模型。
+ *  默认 deepseek-chat：直接作答、无思维链开销，token 消耗约为推理型模型（deepseek-flash）的 1/5。
+ *  如需更强推理能力可设 OPENAI_MODEL=deepseek-flash（注意成本上升）。 */
 const OPENAI_BASE_URL = (process.env.OPENAI_BASE_URL || "https://api.deepseek.com/v1").replace(/\/+$/, "");
-const OPENAI_MODEL = process.env.OPENAI_MODEL || "deepseek-flash";
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "deepseek-chat";
 
 /** 当前后端实际使用的模型名 */
 const ACTIVE_MODEL = BACKEND === "openai" ? OPENAI_MODEL : OLLAMA_MODEL;
@@ -275,9 +277,26 @@ async function callOpenAICompatible(prompt) {
   }
 
   const data = await res.json();
-  const content = data?.choices?.[0]?.message?.content;
-  if (!content) {
-    return { ok: false, error: `云端接口返回结构异常：${JSON.stringify(data).slice(0, 300)}`, error_type: "bad_response" };
+  const choice = data?.choices?.[0];
+  const content = choice?.message?.content;
+
+  // 空正文保护：部分推理型模型（如 DeepSeek 推理系列）会先输出思维链，
+  // 若 max_tokens 被思维链耗尽，content 会是空字符串。此时必须明确报错，
+  // 不能静默返回空白代码。
+  if (!content || !String(content).trim()) {
+    const finish = choice?.finish_reason || "unknown";
+    const hasReasoning = Boolean(choice?.message?.reasoning_content);
+    const hint =
+      finish === "length"
+        ? "该模型在作答前已耗尽输出上限（常见于推理型模型），请调大 max_tokens 或改用 deepseek-chat。"
+        : hasReasoning
+          ? "该模型把内容输出在 reasoning_content 字段，请改用直接作答的模型（如 deepseek-chat）。"
+          : "";
+    return {
+      ok: false,
+      error: `云端接口返回空正文（finish_reason=${finish}）。${hint}`,
+      error_type: "bad_response",
+    };
   }
   return { ok: true, raw: content };
 }

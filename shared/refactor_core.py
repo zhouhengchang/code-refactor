@@ -51,6 +51,9 @@ DEFAULT_OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434")
 DEFAULT_MODEL = os.environ.get("OLLAMA_MODEL", "deepseek-coder")
 
 # 云端 OpenAI 兼容接口配置（backend=openai 时生效）
+# 默认选用 deepseek-chat：直接作答、无思维链开销，同一重构任务的 token 消耗
+# 约为推理型模型（deepseek-flash）的 1/5，更适合按量计费的公开服务。
+# 如需更强调推理能力，可通过 OPENAI_MODEL=deepseek-flash 切换（注意成本上升）。
 DEFAULT_OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL", "https://api.deepseek.com/v1")
 DEFAULT_OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "deepseek-chat")
 
@@ -201,16 +204,42 @@ def check_ollama_status(
     host: Optional[str] = None,
     model: Optional[str] = None,
     timeout: float = 5.0,
+    backend: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """检查 Ollama 服务是否可用，以及目标模型是否已拉取。
+    """检查推理后端是否可用，以及目标模型是否就绪。
 
     该函数永不抛异常，始终返回结构化字典，方便 MCP 工具直接透传给用户。
 
+    - backend=ollama：检查本地 Ollama 服务与本机已拉取的模型列表。
+    - backend=openai：检查 API 密钥是否已配置（不发起真实请求，避免产生费用）。
+
     :param host: Ollama 服务地址，默认读取 OLLAMA_HOST
-    :param model: 需要检查的模型名，默认读取 OLLAMA_MODEL
+    :param model: 需要检查的模型名，默认按后端取默认值
     :param timeout: 健康检查超时秒数，默认 5 秒
+    :param backend: 推理后端，ollama | openai；不传则读取 REFACTOR_BACKEND
     :return: 形如 {"ok": True, "available": True, ...} 的字典
     """
+    effective_backend = (backend or DEFAULT_BACKEND).lower()
+
+    # --- 云端后端：只检查密钥配置，不发起请求（避免产生费用）---
+    if effective_backend == "openai":
+        api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+        target_model = model or DEFAULT_OPENAI_MODEL
+        available = bool(api_key)
+        return {
+            "ok": True,
+            "available": available,
+            "backend": "openai",
+            "base_url": DEFAULT_OPENAI_BASE_URL,
+            "model": target_model,
+            "message": (
+                f"云端后端已配置，模型 {target_model} 可用。"
+                if available
+                else "云端后端未配置，请设置环境变量 OPENAI_API_KEY（密钥仅存于环境变量，不会写入代码）。"
+            ),
+        }
+
+    # --- 本地后端：检查 Ollama 服务与模型列表 ---
     base = _normalize_host(host)
     target_model = model or DEFAULT_MODEL
     try:
@@ -225,6 +254,7 @@ def check_ollama_status(
         return {
             "ok": True,
             "available": available,
+            "backend": "ollama",
             "host": base,
             "model": target_model,
             "installed_models": models,
@@ -238,6 +268,7 @@ def check_ollama_status(
         return {
             "ok": False,
             "available": False,
+            "backend": "ollama",
             "host": base,
             "model": target_model,
             "installed_models": [],
@@ -352,9 +383,32 @@ def _call_openai_compatible(
 
     # 提取回复内容，兼容 OpenAI 标准结构
     try:
-        content = obj["choices"][0]["message"]["content"]
+        choice = obj["choices"][0]
+        content = choice["message"]["content"]
     except (KeyError, IndexError, TypeError) as exc:
         raise RuntimeError(f"云端接口返回结构异常：{raw[:300]}") from exc
+
+    # 空正文保护：某些模型（如 DeepSeek 推理系列）会先输出思维链，
+    # 若 max_tokens 被思维链耗尽，content 会为空字符串——此时必须显式报错，
+    # 绝不能静默返回空白代码，否则用户会拿到"看似成功实则无内容"的结果。
+    if not content or not str(content).strip():
+        finish_reason = choice.get("finish_reason", "unknown")
+        reasoning = ""
+        try:
+            reasoning = choice["message"].get("reasoning_content") or ""
+        except (KeyError, TypeError):
+            reasoning = ""
+        hint = ""
+        if finish_reason == "length":
+            hint = (
+                "当前模型在生成最终答案前已耗尽输出上限（通常发生在推理型模型上）。"
+                "请在服务端调大 max_tokens，或改用直接作答的模型（如 deepseek-chat）。"
+            )
+        elif reasoning:
+            hint = "该模型把内容输出在了 reasoning_content 字段，请改用直接作答的模型（如 deepseek-chat）。"
+        raise RuntimeError(
+            f"云端接口返回了空正文（finish_reason={finish_reason}）。{hint}"
+        )
 
     # 统一成 Ollama 的返回结构，方便上层复用解析逻辑
     return {"response": content}
@@ -366,8 +420,9 @@ def refactor_code(
     host: Optional[str] = None,
     language: Optional[str] = None,
     timeout: Optional[float] = None,
+    backend: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """调用 Ollama 对给定代码执行重构。
+    """对给定代码执行重构。
 
     该函数永不抛异常，始终返回结构化字典：
 
@@ -378,6 +433,7 @@ def refactor_code(
           "code": "<重构后的代码>",
           "raw": "<模型原始输出>",
           "model": "deepseek-coder",
+          "backend": "ollama",
           "language": "python",
           "elapsed_ms": 1234
         }
@@ -388,10 +444,11 @@ def refactor_code(
 
     :param code: 待重构的源代码片段
     :param task: 重构任务描述（自然语言）
-    :param model: 模型名，默认读取 OLLAMA_MODEL 或 deepseek-coder
-    :param host: Ollama 地址，默认读取 OLLAMA_HOST
+    :param model: 模型名；不传则按后端读取对应默认值
+    :param host: Ollama 地址（仅 ollama 后端使用）
     :param language: 可选的编程语言提示
-    :param timeout: 超时秒数，默认 25 秒
+    :param timeout: 超时秒数
+    :param backend: 推理后端，ollama | openai；不传则读取 REFACTOR_BACKEND
     :return: 结构化结果字典
     """
     # --- 入参校验：提前拦截空输入，避免无意义地占用模型 ---
@@ -400,7 +457,7 @@ def refactor_code(
     if not task or not task.strip():
         return {"ok": False, "error": "参数 task 不能为空，请说明希望如何重构，例如「提取重复逻辑为函数」。", "error_type": "invalid_argument"}
 
-    # 超长代码保护：Ollama 上下文有限，超过约 2 万字符时提示用户拆分
+    # 超长代码保护：本地小模型上下文有限，超过约 2 万字符时提示用户拆分
     if len(code) > 20000:
         return {
             "ok": False,
@@ -408,32 +465,29 @@ def refactor_code(
             "error_type": "payload_too_large",
         }
 
+    # --- 选择后端与模型 ---
+    effective_backend = (backend or DEFAULT_BACKEND).lower()
     base = _normalize_host(host)
-    target_model = model or DEFAULT_MODEL
+    if effective_backend == "openai":
+        target_model = model or DEFAULT_OPENAI_MODEL
+    else:
+        target_model = model or DEFAULT_MODEL
     effective_timeout = timeout or DEFAULT_TIMEOUT
-
-    payload = {
-        "model": target_model,
-        "prompt": _build_prompt(code, task, language),
-        "stream": False,          # 非流式，便于一次性返回结构化结果
-        "options": {
-            # temperature 调低，保证重构结果稳定、少发挥
-            "temperature": 0.2,
-            # 限制最大生成长度，配合 30 秒响应承诺
-            "num_predict": 2048,
-        },
-    }
+    prompt = _build_prompt(code, task, language)
 
     started = time.time()
     try:
-        resp = _http_json(f"{base}/api/generate", payload=payload, timeout=effective_timeout)
+        if effective_backend == "openai":
+            resp = _call_openai_compatible(prompt, target_model, DEFAULT_OPENAI_BASE_URL, effective_timeout)
+        else:
+            resp = _call_ollama(prompt, target_model, base, effective_timeout)
     except RuntimeError as exc:
         # 区分「模型不存在」与「服务不可达」，给出更有指向性的中文提示
         message = str(exc)
-        error_type = "ollama_unreachable"
+        error_type = "backend_unreachable" if effective_backend == "openai" else "ollama_unreachable"
         if "not found" in message.lower() or "no such model" in message.lower():
             error_type = "model_not_found"
-            message = f"未找到模型 {target_model}，请先执行 `ollama pull {target_model}`。原始信息：{message}"
+            message = f"未找到模型 {target_model}。原始信息：{message}"
         return {"ok": False, "error": message, "error_type": error_type}
 
     raw = (resp.get("response") or "").strip()
@@ -446,6 +500,7 @@ def refactor_code(
         "code": _extract_code_block(raw),
         "raw": raw,
         "model": target_model,
+        "backend": effective_backend,
         "language": language or "auto",
         "elapsed_ms": elapsed_ms,
     }
