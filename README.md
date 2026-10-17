@@ -210,6 +210,28 @@ export OPENAI_API_KEY=sk-xxxx
 
 想用更小更快的本地模型：`OLLAMA_MODEL=qwen2.5-coder:1.5b`。
 
+## 运维工具
+
+`tools/` 下有两个自检脚本，改完配置或轮换密钥后建议跑一遍，避免"改完才发现用不了"：
+
+| 脚本 | 作用 |
+|---|---|
+| `tools/rotate_key.py` | 密钥轮换：先校验**鉴权 / 余额 / 真实调用**三关，全过才允许写入；替换前自动备份，可一键回滚 |
+| `tools/verify_online.py` | 线上体检：依次请求 `/healthz`、`/status`、`/refactor`，确认新配置在生产环境真正生效 |
+
+```bash
+# 只验证，不改任何文件
+python tools/rotate_key.py --check --key sk-xxxx
+
+# 验证通过后写入 .env
+python tools/rotate_key.py --apply --key sk-xxxx
+
+# 线上实例体检
+python tools/verify_online.py https://your-host/
+```
+
+> `rotate_key.py` 只改 `.env` 里 `OPENAI_API_KEY` 一行，其余配置原样保留。
+
 ## 项目结构
 
 ```
@@ -221,6 +243,7 @@ code-refactor/
 ├── skillhub-skill/              # SkillHub Pay Skill
 ├── alipay-ai/                   # 支付宝 AI收 接入配置
 ├── xinghuo-agent/               # 讯飞星火智能体配置
+├── tools/                       # 密钥轮换与线上体检脚本
 └── github-repo/                 # 本文档所在的开源仓库
 ```
 
