@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.zhouhengchang/code-refactor",
   "title": "Code Refactor",
-  "description": "Refactor legacy code into modern, idiomatic code without changing behavior. Renames identifiers to meaningful names, adds type annotations and documentation comments, and restructures code. Supports Python, JavaScript, TypeScript, Java, Go, Rust, C and C++. Runs against a local Ollama model (code never leaves your machine) or any OpenAI-compatible cloud endpoint such as DeepSeek.",
+  "description": "Refactor legacy code into modern, idiomatic code without changing its behavior.",
   "version": "1.0.3",
   "websiteUrl": "https://code-refactor-api.app.workbuddy.host",
   "repository": {
