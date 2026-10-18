@@ -3,7 +3,7 @@
   "name": "io.github.zhouhengchang/code-refactor",
   "title": "Code Refactor",
   "description": "Refactor legacy code into modern, idiomatic code without changing its behavior.",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "websiteUrl": "https://code-refactor-api.app.workbuddy.host",
   "repository": {
     "url": "https://github.com/zhouhengchang/code-refactor",
@@ -11,11 +11,10 @@
     "subfolder": "workbuddy-connector/server"
   },
   "packages": [
-    {
-      "registryType": "npm",
+    {      "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "workbuddy-code-refactor-connector",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "transport": {
         "type": "stdio"
       },
@@ -62,6 +61,12 @@
           "default": "180000"
         }
       ]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://code-refactor-api.app.workbuddy.host/mcp"
     }
   ]
 }

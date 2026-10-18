@@ -1,6 +1,6 @@
 {
   "name": "workbuddy-code-refactor-connector",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "mcpName": "io.github.zhouhengchang/code-refactor",
   "description": "MCP 代码重构服务：把遗留代码重构为现代规范代码，支持本地 Ollama 与云端 OpenAI 兼容接口（DeepSeek 等）两种推理后端",
   "type": "module",
