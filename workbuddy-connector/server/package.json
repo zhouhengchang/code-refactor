@@ -1,7 +1,8 @@
 {
   "name": "workbuddy-code-refactor-connector",
-  "version": "1.0.2",
-  "description": "WorkBuddy 代码重构连接器：把遗留代码重构为现代规范代码，支持本地 Ollama 与云端 OpenAI 兼容接口两种推理后端",
+  "version": "1.0.3",
+  "mcpName": "io.github.zhouhengchang/code-refactor",
+  "description": "MCP 代码重构服务：把遗留代码重构为现代规范代码，支持本地 Ollama 与云端 OpenAI 兼容接口（DeepSeek 等）两种推理后端",
   "type": "module",
   "main": "index.js",
   "bin": {
@@ -14,10 +15,13 @@
     "mcp",
     "model-context-protocol",
     "workbuddy",
+    "coze",
     "connector",
     "code-refactor",
+    "refactoring",
+    "code-review",
     "ollama",
-    "deepseek-coder"
+    "deepseek"
   ],
   "license": "MIT",
   "repository": {

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.zhouhengchang/code-refactor",
+  "title": "Code Refactor",
+  "description": "Refactor legacy code into modern, idiomatic code without changing behavior. Renames identifiers to meaningful names, adds type annotations and documentation comments, and restructures code. Supports Python, JavaScript, TypeScript, Java, Go, Rust, C and C++. Runs against a local Ollama model (code never leaves your machine) or any OpenAI-compatible cloud endpoint such as DeepSeek.",
+  "version": "1.0.3",
+  "websiteUrl": "https://code-refactor-api.app.workbuddy.host",
+  "repository": {
+    "url": "https://github.com/zhouhengchang/code-refactor",
+    "source": "github",
+    "subfolder": "workbuddy-connector/server"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "workbuddy-code-refactor-connector",
+      "version": "1.0.3",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "REFACTOR_BACKEND",
+          "description": "Inference backend: 'ollama' (local, code stays on your machine, default) or 'openai' (any OpenAI-compatible cloud endpoint, e.g. DeepSeek).",
+          "isRequired": false,
+          "default": "ollama"
+        },
+        {
+          "name": "OPENAI_BASE_URL",
+          "description": "Base URL of the OpenAI-compatible endpoint, e.g. https://api.deepseek.com/v1. Required when REFACTOR_BACKEND=openai.",
+          "isRequired": false
+        },
+        {
+          "name": "OPENAI_API_KEY",
+          "description": "API key for the cloud endpoint, e.g. a DeepSeek key. Only needed when REFACTOR_BACKEND=openai.",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "OPENAI_MODEL",
+          "description": "Cloud model name, e.g. deepseek-chat.",
+          "isRequired": false,
+          "default": "deepseek-chat"
+        },
+        {
+          "name": "OLLAMA_HOST",
+          "description": "Ollama server address used when REFACTOR_BACKEND=ollama.",
+          "isRequired": false,
+          "default": "http://127.0.0.1:11434"
+        },
+        {
+          "name": "OLLAMA_MODEL",
+          "description": "Ollama model name used when REFACTOR_BACKEND=ollama.",
+          "isRequired": false,
+          "default": "qwen2.5-coder"
+        },
+        {
+          "name": "REFACTOR_TIMEOUT_MS",
+          "description": "Per-call timeout in milliseconds. Raise it for slow local CPU inference.",
+          "isRequired": false,
+          "default": "180000"
+        }
+      ]
+    }
+  ]
+}

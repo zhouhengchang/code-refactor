@@ -1,0 +1,44 @@
+name: Publish to Official MCP Registry
+
+# 把本仓库的 MCP Server 发布到官方 MCP Registry
+# (registry.modelcontextprotocol.io)，让 Claude / Cursor / VS Code 等
+# MCP 客户端能搜索并安装。
+#
+# 认证：GitHub OIDC，无需任何长期密钥；OIDC 自动授予
+# io.github.<仓库属主>/* 命名空间。
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'server.json'
+      - '.github/workflows/publish-mcp-registry.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install mcp-publisher
+        run: |
+          curl -sSL -o mcp-publisher.tar.gz \
+            "https://github.com/modelcontextprotocol/registry/releases/download/v1.8.1/mcp-publisher_linux_amd64.tar.gz"
+          tar -xzf mcp-publisher.tar.gz
+          chmod +x mcp-publisher
+          ./mcp-publisher --help
+
+      - name: Show manifest
+        run: cat server.json
+
+      - name: Login via GitHub OIDC
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish server
+        run: ./mcp-publisher publish
